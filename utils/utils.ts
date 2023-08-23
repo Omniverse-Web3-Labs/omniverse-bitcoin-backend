@@ -1,14 +1,12 @@
-'use strict';
-
-async function sleep(seconds) {
+export async function sleep(seconds: number): Promise<void> {
   await new Promise((resolve) => {
     setTimeout(() => {
-      resolve();
+      resolve(0);
     }, seconds * 1000);
   });
 }
 
-function format() {
+export function format() {
   if (arguments.length == 0) return null;
 
   let str = arguments[0];
@@ -20,14 +18,14 @@ function format() {
 }
 
 // Convert normal string to u8 array
-function stringToByteArray(str) {
+export function stringToByteArray(str: string) {
   return Array.from(str, function (byte) {
     return byte.charCodeAt(0);
   });
 }
 
 // Convert u8 array to hex string
-function toHexString(byteArray) {
+export function toHexString(byteArray: Uint8Array) {
   return (
     '0x' +
     Array.from(byteArray, function (byte) {
@@ -37,7 +35,7 @@ function toHexString(byteArray) {
 }
 
 // Convert hex string to u8 array buffer
-function toByteArray(hexString) {
+export function toByteArray(hexString: string) {
   if (hexString.substr(0, 2) == '0x') {
     hexString = hexString.substr(2);
   }
@@ -48,35 +46,3 @@ function toByteArray(hexString) {
   }
   return result;
 }
-
-// Camel-Case to Snake-case
-function camelToSnake(object) {
-  let newObject = {};
-  Object.keys(object).reduce((_, key) => {
-    let newKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
-    newObject[newKey] = object[key];
-  }, {});
-  return newObject;
-}
-
-// Snake-case to Camel-Case
-function snakeToCamel(object) {
-  let newObject = {};
-  Object.keys(object).reduce((_, key) => {
-    let newKey = key.replace(/\_(\w)/g, function (_, letter) {
-      return letter.toUpperCase();
-    });
-    newObject[newKey] = object[key];
-  }, {});
-  return newObject;
-}
-
-module.exports = {
-  sleep: sleep,
-  toHexString: toHexString,
-  toByteArray: toByteArray,
-  format: format,
-  stringToByteArray: stringToByteArray,
-  camelToSnake,
-  snakeToCamel,
-};

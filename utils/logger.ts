@@ -1,5 +1,4 @@
-const log4js = require('log4js');
-const defaultConfig = require('../../config/default.json').networks;
+import log4js from "log4js";
 
 let configure = {
   appenders: {
@@ -12,18 +11,6 @@ let configure = {
   },
 };
 
-for (let chainName in defaultConfig) {
-  chainName = chainName.toLowerCase();
-  configure.appenders[chainName] = {
-    type: 'file',
-    filename: `logs/${chainName}.log`,
-  };
-  configure.categories[chainName] = {
-    appenders: [chainName, 'consoleout'],
-    level: 'all',
-  };
-}
-
 log4js.configure(configure);
 
-module.exports = log4js;
+export default log4js;
