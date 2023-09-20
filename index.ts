@@ -1,20 +1,20 @@
-import express = require("express");
+import express from "express";
+import registerRouters from "./rpc/index";
 import Monitor from "./monitor/index";
+import {init} from "./database/index";
 
+async function main(){
+    await init()
+   
+    const monitor = new Monitor();
+    monitor.start()
+    const app: express.Application = express();
 
-const monitor = new Monitor();
-monitor.start()
+    registerRouters(app)
 
+    app.listen(3000, () => {
+        console.log('server start at 3000');
+    });
+}
 
-const app: express.Application = express();
-
-
-app.get("/", (req, res) => {
-    res.write('<h1>Welcome!</h2>');
-    res.end();
-});
-
-
-app.listen(3000, () => {
-    console.log('server start at 3000')
-});
+main();
