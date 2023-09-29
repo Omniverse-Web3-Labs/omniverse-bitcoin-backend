@@ -1,15 +1,15 @@
 import express from "express";
-import registerRouters from "./rpc/index";
-import Monitor from "./monitor/index";
-import {init} from "./database/index";
+import registerRouters from "./rpc";
+import Monitor from "./monitor";
+import { client, init } from "./database";
 
 async function main(){
-    await init()
-   
+    await init(); 
     const monitor = new Monitor();
     monitor.start()
     const app: express.Application = express();
 
+    app.use(express.json());
     registerRouters(app)
 
     app.listen(3000, () => {

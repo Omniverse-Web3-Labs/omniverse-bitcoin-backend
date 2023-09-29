@@ -3,13 +3,16 @@
  */
 
 import {ODLT} from '@hthuang/bitcoin-lib/dist';
+import { client, dbname } from '../database';
+import { getUser } from '../database/models';
 
 export interface User {
     pk: string;
-    amount: bigint;
+    //amount: bigint;
     transactions: Map<string, ODLT.ODLTTransaction[]> ;
     transactionCount: bigint;
     isMalicious: boolean;
+    isAdmin?: boolean;
 }
 
 export interface Member {
@@ -42,16 +45,50 @@ class ODLTRecord {
         //return false;
     }
 
-    saveTransaction(transaction: ODLT.ODLTTransaction) {
+    async saveTransaction(transaction: ODLT.ODLTTransaction) {
         const payload = JSON.parse(transaction.tx.payload) as Payload;
         payload.amount = BigInt(payload.amount);
+
+        const transactionModel = await client.db(dbname).collection('transaction').findOne({
+            blockHash: transaction.blockHash,
+            txIndex: transaction.txIndex,
+            'tx.chainId': transaction.tx.chainId,
+            'tx.from': transaction.tx.from,
+            'tx.initiateSC': transaction.tx.initiateSC,
+            'tx.nonce': transaction.tx.nonce,
+            'tx.payload': transaction.tx.payload,
+            'tx.signature': transaction.tx.signature,
+        })
+        if (transactionModel == null) {
+            const result = await client.db(dbname).collection('transaction').insertOne(transaction);
+        }
+
+
+        //更新member信息
+        let hasMember = false;
+        for (const i in this.members) {
+            if (this.members[i].chainId == transaction.tx.chainId) {
+                hasMember = true;
+            }
+        }
+        if (!hasMember) {
+            this.members.push({
+                chainId: +transaction.tx.chainId,
+                contractAddr: transaction.tx.initiateSC,
+            })
+        }
         
         //更新或获取用户信息
+        const fromUserPk = transaction.tx.from
+        const fromUserModel = getUser(fromUserPk)
+        if (fromUserModel == null) {
+            return;
+        }
         let fromUser = this.users.get(transaction.tx.from);
         if (fromUser == undefined) {
             fromUser = {
                 pk: transaction.tx.from,
-                amount: BigInt(0),
+                //amount: BigInt(0),
                 transactions: new Map(),
                 transactionCount: BigInt(0),
                 isMalicious: false,
@@ -67,26 +104,14 @@ class ODLTRecord {
         if (toUser == undefined) {
             toUser = {
                 pk: toUserPk,
-                amount: BigInt(0),
+                //amount: BigInt(0),
                 transactions: new Map(),
                 transactionCount: BigInt(0),
                 isMalicious: false,
             }
             this.users.set(toUserPk, toUser);
         }
-        //更新member信息
-        let hasMember = false;
-        for (const i in this.members) {
-            if (this.members[i].chainId == transaction.tx.chainId) {
-                hasMember = true;
-            }
-        }
-        if (!hasMember) {
-            this.members.push({
-                chainId: +transaction.tx.chainId,
-                contractAddr: transaction.tx.initiateSC,
-            })
-        }
+
 
         // 插入并检查交易是否重复
         let transactions = fromUser.transactions.get(transaction.tx.nonce.toString());
@@ -117,12 +142,14 @@ class ODLTRecord {
             return;
         }
 
+        /*
         switch(+payload.op) {
             case 0: fromUser.amount -= payload.amount; toUser.amount += payload.amount ;break;
             case 1: toUser.amount += payload.amount; break;
             case 2: toUser.amount -= payload.amount;break;
             default: break;
         }
+        */
     }
 }
 

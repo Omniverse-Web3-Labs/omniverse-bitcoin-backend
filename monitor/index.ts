@@ -1,6 +1,5 @@
 import {ODLT, bitcoin} from '@hthuang/bitcoin-lib/dist';
 import record from '../omniverse/odlt';
-import { db } from '../database';
 
 export default class Monitor {
     constructor() {

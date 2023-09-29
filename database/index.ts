@@ -2,6 +2,50 @@
  * Used to store persistence omniverse transactions
  */
 
+import { MongoClient } from "mongodb";
+const auth = {
+  user: '',
+  password: '',
+}
+
+export const dbname = "odlt";
+
+export const client = new MongoClient("mongodb://127.0.0.1:27017", {
+    minPoolSize: 10,
+    maxPoolSize: 50,
+});
+
+export async function init() {
+    await client.connect();
+}
+
+
+/*
+import mongoose from "mongoose";
+const url = "mongodb://127.0.0.1:27017";
+
+//1.连接数据库
+mongoose.connect(url,{});
+
+mongoose.connection.on('connected',function(){
+    console.log('连接成功：',url);
+})
+//3.连接失败
+mongoose.connection.on('error',function(err){
+    console.log('连接错误：',err);
+})
+//4.断开连接
+mongoose.connection.on('disconnection',function(){
+    console.log('断开连接');
+})
+
+module.exports = mongoose;
+*/
+
+
+
+
+/*
 import { RxDatabase, createRxDatabase } from 'rxdb';
 import { getRxStorageMemory } from 'rxdb/plugins/storage-memory';
 
@@ -86,3 +130,4 @@ export async function init() {
     await db.addCollections({transaction: {schema: transactionSchema}})
     await db.addCollections({user: {schema: userSchema}})
 }
+*/

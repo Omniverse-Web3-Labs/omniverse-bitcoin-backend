@@ -4,7 +4,8 @@
 
 
 import express from "express";
-import record from '../omniverse/odlt';
+import record, { User } from '../omniverse/odlt';
+import { client, dbname } from "../database";
 
 export default function(app: express.Application) {
     app.get("/api/omniverseBalanceOf", (req, res) => {
@@ -17,7 +18,7 @@ export default function(app: express.Application) {
           return;
         }
         res.json({
-            result: user.amount,
+            //result: user.amount,
         });
     });
     
@@ -79,10 +80,47 @@ export default function(app: express.Application) {
             res.json({
                 'error': 'user not found'
             })
-          return;
+            return;
         }
         res.json({
             result: user.isMalicious,
         });
     });
+
+
+    app.post("/api/admin/setUser", async (req, res) => {
+        if (!req.ip.endsWith("127.0.0.1")) {
+            res.json({
+                'error': 'permission not allow'
+            })
+            return;
+        }
+        const data = req.body;
+        const pk = data.pk;
+        const isAdmin = data.isAdmin ? true : false;
+        if (typeof pk != 'string' || pk.length != 130) {
+            res.json({
+                'error': 'pk must be 130 length string'
+            })
+            return;
+        }
+        
+        let user = await client.db(dbname).collection('user').findOne({'pk': pk});
+        if (user == null) {
+            const newUser = {
+                pk: pk,
+                isAdmin: isAdmin
+            }
+            const result = await client.db(dbname).collection('user').insertOne(newUser);
+        } else {
+            const result = await client.db(dbname).collection('user').updateOne({_id: user._id}, {
+                $set: {
+                    isAdmin: isAdmin,
+                }              
+            });
+        }
+        res.json({
+            'result': 'success',
+        }); 
+    })
 }
