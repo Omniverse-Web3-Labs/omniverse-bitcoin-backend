@@ -53,7 +53,7 @@ export default function(app: express.Application) {
             })
             return;
         }
-        const transactions = user.transactions.get(nonce.toString())
+        const transactions = user.computedTransactions.get(nonce.toString())
         if (transactions == undefined || transactions.length == 0) {
             res.json({
                 'error': 'transaction not found'
@@ -118,6 +118,32 @@ export default function(app: express.Application) {
                     isAdmin: isAdmin,
                 }              
             });
+        }
+        let memoryUser = record.users.get(pk)
+        if (!memoryUser) {
+            memoryUser = {
+                pk: pk,
+                amount: BigInt(0),
+                computedTransactions: new Map(),
+                preloadTransactions: [],
+                transactionCount: BigInt(0),
+                isValid: true,
+                isMalicious: false,
+                isAdmin: isAdmin,
+            };
+            record.users.set(pk, memoryUser);
+        } else {
+            memoryUser.isAdmin = isAdmin;
+            if (!memoryUser.isValid) {
+                memoryUser.isValid = true
+                while(true) {
+                    const transaction = memoryUser.preloadTransactions.shift()
+                    if (!transaction) {
+                        break;
+                    }
+                    record.applyTransaction(memoryUser, transaction);
+                }
+            }
         }
         res.json({
             'result': 'success',

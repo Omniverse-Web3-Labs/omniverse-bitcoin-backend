@@ -8,9 +8,11 @@ import { getUser } from '../database/models';
 
 export interface User {
     pk: string;
-    //amount: bigint;
-    transactions: Map<string, ODLT.ODLTTransaction[]> ;
+    amount: bigint;
+    computedTransactions: Map<string, ODLT.ODLTTransaction[]> ; //有效的transactions
+    preloadTransactions: ODLT.ODLTTransaction[]; //预加载的transactions
     transactionCount: bigint;
+    isValid: boolean;
     isMalicious: boolean;
     isAdmin?: boolean;
 }
@@ -31,8 +33,7 @@ class ODLTRecord {
     members: Member[] = [];
 
     transactionEquals(t1: ODLT.ODLTTransaction, t2: ODLT.ODLTTransaction): boolean {
-        return JSON.stringify(t1) == JSON.stringify(t2);
-        /*
+        //return JSON.stringify(t1) == JSON.stringify(t2);
         if (t1.blockHash == t2.blockHash && 
             t1.txIndex == t2.txIndex && 
             t1.tx.chainId == t2.tx.chainId &&
@@ -41,14 +42,11 @@ class ODLTRecord {
             t1.tx.nonce == t2.tx.nonce
             ) {
             return true;
-        }*/
-        //return false;
+        }
+        return false;
     }
 
     async saveTransaction(transaction: ODLT.ODLTTransaction) {
-        const payload = JSON.parse(transaction.tx.payload) as Payload;
-        payload.amount = BigInt(payload.amount);
-
         const transactionModel = await client.db(dbname).collection('transaction').findOne({
             blockHash: transaction.blockHash,
             txIndex: transaction.txIndex,
@@ -80,22 +78,37 @@ class ODLTRecord {
         
         //更新或获取用户信息
         const fromUserPk = transaction.tx.from
-        const fromUserModel = getUser(fromUserPk)
-        if (fromUserModel == null) {
-            return;
-        }
+        const fromUserModel = await getUser(fromUserPk)
+        const isValid = fromUserModel != null;
+        const isAdmin = fromUserModel?.isAdmin;
         let fromUser = this.users.get(transaction.tx.from);
         if (fromUser == undefined) {
             fromUser = {
                 pk: transaction.tx.from,
-                //amount: BigInt(0),
-                transactions: new Map(),
+                amount: BigInt(0),
+                computedTransactions: new Map(),
+                preloadTransactions: [],
                 transactionCount: BigInt(0),
+                isValid: isValid,
                 isMalicious: false,
+                isAdmin: isAdmin,
             }
             this.users.set(transaction.tx.from, fromUser);
+        } else {
+            fromUser.isValid = isValid;
+            fromUser.isAdmin = isAdmin;
         }
+        // 插入并检查交易是否重复
+        if (fromUser.isValid) {
+            this.applyTransaction(fromUser, transaction);
+        } else {
+            fromUser.preloadTransactions.push(transaction)
+        }
+    }
 
+    applyTransaction(fromUser: User, transaction: ODLT.ODLTTransaction) {
+        const payload = JSON.parse(transaction.tx.payload) as Payload;
+        payload.amount = BigInt(payload.amount);
         let toUserPk = payload.exData
         if (!toUserPk.startsWith("0x")) {
             toUserPk = "0x" + toUserPk
@@ -104,20 +117,21 @@ class ODLTRecord {
         if (toUser == undefined) {
             toUser = {
                 pk: toUserPk,
-                //amount: BigInt(0),
-                transactions: new Map(),
+                amount: BigInt(0),
+                computedTransactions: new Map(),
+                preloadTransactions: [],
                 transactionCount: BigInt(0),
+                isValid: false,
                 isMalicious: false,
+                isAdmin: false,
             }
             this.users.set(toUserPk, toUser);
-        }
+        } 
 
-
-        // 插入并检查交易是否重复
-        let transactions = fromUser.transactions.get(transaction.tx.nonce.toString());
+        let transactions = fromUser.computedTransactions.get(transaction.tx.nonce.toString());
         if (transactions == undefined) {
             transactions = [];
-            fromUser.transactions.set(transaction.tx.nonce.toString(), transactions);
+            fromUser.computedTransactions.set(transaction.tx.nonce.toString(), transactions);
         }
         if (transactions.length == 0) {
             transactions.push(transaction)
@@ -137,20 +151,30 @@ class ODLTRecord {
                 fromUser.isMalicious = true;
             }
         }
-
         if (fromUser.isMalicious) {
             return;
         }
-
-        /*
         switch(+payload.op) {
-            case 0: fromUser.amount -= payload.amount; toUser.amount += payload.amount ;break;
-            case 1: toUser.amount += payload.amount; break;
-            case 2: toUser.amount -= payload.amount;break;
+            case 0: 
+                if (fromUser.amount > payload.amount) {
+                    fromUser.amount -= payload.amount; 
+                    toUser.amount += payload.amount;
+                }
+                break;
+            case 1: 
+                if (fromUser.isAdmin) {
+                    toUser.amount += payload.amount;
+                }
+                break;
+            case 2: 
+                if (fromUser.isAdmin) {
+                    toUser.amount -= payload.amount;
+                }
+                break;
             default: break;
         }
-        */
     }
+
 }
 
 export default new ODLTRecord()
