@@ -41,7 +41,7 @@ Then get test tokens from [faucet](https://bitcoinfaucet.uo1.net/), and check bl
 
 #### Mainnet
 
-You should generate the account as [Testnet](#testnet) shows.
+You should generate the account as [Testnet](#testnet) shows, then get tokens from others.
 
 ### Run
 
