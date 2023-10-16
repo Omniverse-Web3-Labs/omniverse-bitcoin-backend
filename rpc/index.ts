@@ -4,9 +4,12 @@
 
 
 import express from "express";
-import record from '../omniverse/odlt';
+import record, { User } from '../omniverse/odlt';
+import { client, dbname } from "../database";
+import cors from "cors";
 
 export default function(app: express.Application) {
+    app.use(cors());
     app.get("/api/omniverseBalanceOf", (req, res) => {
         const pk = req.query['pk'] as string;
         const user = record.users.get(pk);
