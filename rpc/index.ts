@@ -5,7 +5,6 @@
 
 import express from "express";
 import record, { User } from '../omniverse/odlt';
-import { client, dbname } from "../database";
 import cors from "cors";
 
 export default function(app: express.Application) {
