@@ -4,10 +4,10 @@ import Monitor from "./monitor/index";
 import {init} from "./database/index";
 
 async function main(){
-    await init()
+    await init();
    
     const monitor = new Monitor();
-    monitor.start()
+    monitor.start();
     const app: express.Application = express();
 
     registerRouters(app)
@@ -18,3 +18,10 @@ async function main(){
 }
 
 main();
+process.on('unhandledRejection', (err) => {
+    console.log('UnhanledRejection', err);
+});
+
+process.on('uncaughtException', (err) => {
+    console.log('UnhanledException', err);
+});

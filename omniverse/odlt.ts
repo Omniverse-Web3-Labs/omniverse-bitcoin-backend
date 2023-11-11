@@ -28,7 +28,7 @@ class ODLTRecord {
     members: Member[] = [];
 
     transactionEquals(t1: ODLT.ODLTTransaction, t2: ODLT.ODLTTransaction): boolean {
-        return JSON.stringify(t1) == JSON.stringify(t2);
+        return JSON.stringify(t1.tx) == JSON.stringify(t2.tx);
         /*
         if (t1.blockHash == t2.blockHash && 
             t1.txIndex == t2.txIndex && 
@@ -97,6 +97,13 @@ class ODLTRecord {
         if (transactions.length == 0) {
             transactions.push(transaction)
             fromUser.transactionCount++;
+
+            switch(+payload.op) {
+                case 0: fromUser.amount -= payload.amount; toUser.amount += payload.amount ;break;
+                case 1: toUser.amount += payload.amount; break;
+                case 2: toUser.amount -= payload.amount;break;
+                default: break;
+            }
         } else {
             let eq = false;
             for (const i in transactions) {
@@ -115,13 +122,6 @@ class ODLTRecord {
 
         if (fromUser.isMalicious) {
             return;
-        }
-
-        switch(+payload.op) {
-            case 0: fromUser.amount -= payload.amount; toUser.amount += payload.amount ;break;
-            case 1: toUser.amount += payload.amount; break;
-            case 2: toUser.amount -= payload.amount;break;
-            default: break;
         }
     }
 }
