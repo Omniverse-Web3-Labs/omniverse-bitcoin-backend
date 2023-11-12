@@ -8,14 +8,21 @@ export default class Monitor {
     }
     start() {
         bitcoin.setProvider(config.provider);
-        ODLT.subscribe({from: 0,}, (omniverseTransactions) => {
-                console.debug('omniverse transaction: ', omniverseTransactions);
-                // pass the omniverse transaction to omniverse logic layer
-                for (let i in omniverseTransactions) {
-                    let omniverseTransaction = omniverseTransactions[i];
-                    record.saveTransaction(omniverseTransaction);
+        bitcoin.setUser('btc');
+        bitcoin.setPassword('btc2023');
+        try {
+            ODLT.subscribe({from: 0,}, (omniverseTransactions) => {
+                    console.debug('omniverse transaction: ', omniverseTransactions);
+                    // pass the omniverse transaction to omniverse logic layer
+                    for (let i in omniverseTransactions) {
+                        let omniverseTransaction = omniverseTransactions[i];
+                        record.saveTransaction(omniverseTransaction);
+                    }
                 }
-            }
-        );
+            );
+        }
+        catch (e) {
+            console.log(e);
+        }
     }
 }
