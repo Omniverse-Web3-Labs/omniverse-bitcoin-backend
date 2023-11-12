@@ -88,6 +88,10 @@ class ODLTRecord {
             })
         }
 
+        // 交易只能按顺序插入
+        if (fromUser.transactionCount != transaction.tx.nonce) {
+            return;
+        }
         // 插入并检查交易是否重复
         let transactions = fromUser.transactions.get(transaction.tx.nonce.toString());
         if (transactions == undefined) {
