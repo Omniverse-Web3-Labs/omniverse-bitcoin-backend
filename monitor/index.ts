@@ -13,11 +13,13 @@ export default class Monitor {
         bitcoin.setPassword('b');
         try {
             inscription.subscribe({from: 0,}, (datas: string[], blockHash: string) => {
+                console.log('datas', datas, blockHash);
                 let rets = [];
                 for (let i in datas) {
                     let data = datas[i];
                     let originData = Buffer.from(data, 'hex').toString();
                     let tx = JSON.parse(originData);
+                    console.log('tx', tx);
                     if (tx.p != 'brc-6358' || tx.method != 'addBlock') {
                         continue;
                     }
