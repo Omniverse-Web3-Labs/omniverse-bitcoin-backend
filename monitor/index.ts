@@ -1,4 +1,4 @@
-import {inscription, bitcoin} from '@hthuang/bitcoin-lib/dist';
+import {inscription, bitcoin} from '../../omniverse-btc-lib/dist';
 import record from '../omniverse/odlt';
 import config from '../config/config';
 import { db } from '../database';
@@ -12,12 +12,12 @@ export default class Monitor {
         bitcoin.setUser('a');
         bitcoin.setPassword('b');
         try {
-            inscription.subscribe({from: 0,}, (datas: string[], blockHash: string) => {
+            inscription.subscribe({from: 0,}, (datas: Array<any>, blockHash: string) => {
                 console.log('datas', datas, blockHash);
                 let rets = [];
                 for (let i in datas) {
                     let data = datas[i];
-                    let originData = Buffer.from(data, 'hex').toString();
+                    let originData = Buffer.from(data.data, 'hex').toString();
                     let tx = JSON.parse(originData);
                     console.log('tx', tx);
                     if (tx.p != 'brc-6358' || tx.method != 'addBlock') {
@@ -29,7 +29,10 @@ export default class Monitor {
                         preBlockUTXORootHash: tx.preBlockUTXORootHash,
                         curBlockUTXORootHash: tx.curBlockUTXORootHash,
                         blockHash,
-                        txIndex: parseInt(i)
+                        preTxId: tx.preTxId,
+                        preIndex: tx.preIndex,
+                        txid: data.txid,
+                        index: data.index,
                     }
 
                     console.debug('ODLTTransaction', ret);

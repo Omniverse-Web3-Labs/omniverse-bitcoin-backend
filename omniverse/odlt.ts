@@ -9,6 +9,11 @@ export interface Block {
     number: bigint;
     preBlockUTXORootHash: string;
     curBlockUTXORootHash: string;
+    blockHash: string;
+    preTxId: string;
+    preIndex: number;
+    txid: string;
+    index: number;
 }
 
 class ODLTRecord {
@@ -25,6 +30,11 @@ class ODLTRecord {
             number: block.number,
             preBlockUTXORootHash: block.preBlockUTXORootHash,
             curBlockUTXORootHash: block.curBlockUTXORootHash,
+            blockHash: block.blockHash,
+            preTxId: block.preTxId,
+            preIndex: block.preIndex,
+            txid: block.txid,
+            index: block.index,
         });
     }
 
