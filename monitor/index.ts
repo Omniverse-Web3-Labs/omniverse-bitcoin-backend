@@ -12,7 +12,7 @@ export default class Monitor {
         bitcoin.setUser('a');
         bitcoin.setPassword('b');
         try {
-            inscription.subscribe({from: 0,}, (datas: Array<any>, blockHash: string) => {
+            inscription.subscribe({from: 0,}, (datas: Array<any>, blockHash: string, blockHeight: bigint) => {
                 console.log('datas', datas, blockHash);
                 let rets = [];
                 for (let i in datas) {
@@ -25,12 +25,13 @@ export default class Monitor {
                     }
 
                     let ret = {
-                        number: tx.blockNumber,
+                        btcHeight: blockHeight,
                         preBlockUTXORootHash: tx.preBlockUTXORootHash,
                         curBlockUTXORootHash: tx.curBlockUTXORootHash,
                         blockHash,
                         preTxId: tx.preTxId,
                         preIndex: tx.preIndex,
+                        number: tx.blockNumber,
                         txid: data.txid,
                         index: data.index,
                     }

@@ -6,12 +6,13 @@ import {ODLT} from '@hthuang/bitcoin-lib/dist';
 import {logger} from '../utils';
 
 export interface Block {
-    number: bigint;
+    btcHeight: bigint;
     preBlockUTXORootHash: string;
     curBlockUTXORootHash: string;
     blockHash: string;
     preTxId: string;
     preIndex: number;
+    number: bigint;
     txid: string;
     index: number;
 }
@@ -20,25 +21,25 @@ class ODLTRecord {
     blocks: Array<Block> = new Array<Block>();
 
     saveTransaction(block: any) {
-        let height = block.number;
-        if (height != this.blocks.length) {
-            logger.info('Block number not matched', height, block.number);
+        if (block.number != this.blocks.length) {
+            logger.info('Block number not matched', block.number, this.blocks.length);
             return;
         }
 
         this.blocks.push({
-            number: block.number,
+            btcHeight: block.btcHeight,
             preBlockUTXORootHash: block.preBlockUTXORootHash,
             curBlockUTXORootHash: block.curBlockUTXORootHash,
             blockHash: block.blockHash,
             preTxId: block.preTxId,
             preIndex: block.preIndex,
+            number: block.number,
             txid: block.txid,
             index: block.index,
         });
     }
 
-    getBlock(number: number): Block | undefined {
+    getBlockByNumber(number: number): Block | undefined {
         if (number < this.blocks.length) {
             return this.blocks[number];
         }

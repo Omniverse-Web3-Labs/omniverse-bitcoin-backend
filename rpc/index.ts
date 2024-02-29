@@ -18,9 +18,9 @@ export default function(app: express.Application) {
     });
 
 
-    app.get("/api/getBlock", (req, res) => {
+    app.get("/api/getBlockByNumber", (req, res) => {
         const number = req.query['number'] as string;
-        let ret = record.getBlock(parseInt(number));
+        let ret = record.getBlockByNumber(parseInt(number));
         if (ret) {
             res.json(ret);
         }
