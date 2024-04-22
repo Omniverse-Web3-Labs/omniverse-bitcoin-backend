@@ -4,23 +4,25 @@
 
 
 import express from "express";
-import record, { Block } from '../omniverse/odlt';
+import { ODLTRecord, Block } from '../omniverse/odlt';
 import cors from "cors";
 
-export default function(app: express.Application) {
+export default function(odlt: ODLTRecord, app: express.Application) {
     app.use(cors());
 
-    app.get("/api/getNextBlockNumber", (req, res) => {
-        const number = record.blocks.length;
-        res.json({
-            'number': number
-        });
+    app.get("/api/getLatestBlockInfo", (req, res) => {
+        if (odlt.blocks.length == 0) {
+            res.json(null);
+        }
+        else {
+            res.json(odlt.blocks[odlt.blocks.length - 1]);
+        }
     });
 
 
-    app.get("/api/getBlockByNumber", (req, res) => {
-        const number = req.query['number'] as string;
-        let ret = record.getBlockByNumber(parseInt(number));
+    app.get("/api/getBlock", (req, res) => {
+        const height = req.query['height'] as string;
+        let ret = odlt.getBlockByHeight(parseInt(height));
         if (ret) {
             res.json(ret);
         }
@@ -31,9 +33,12 @@ export default function(app: express.Application) {
         }
     });
 
-    app.get("/api/getChainId", (req, res) => {
+    app.get("/api/commitBlockState", (req, res) => {
+        const height = req.query['height'] as string;
+        let receipt = req.query['receipt'] as string;
+        let ret = odlt.commitReceipt(height, receipt);
         res.json({
-            result: 1,
+            result: ret,
         });
     });
 }
