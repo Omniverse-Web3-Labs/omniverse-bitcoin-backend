@@ -4,12 +4,13 @@
 
 
 import express from "express";
-import { ODLTRecord, Batch } from '../omniverse/odlt';
+import { ODLTRecord } from '../omniverse/odlt';
 import cors from "cors";
 
 export default function(odlt: ODLTRecord, app: express.Application) {
     app.use(cors());
 
+    // Get latest batch data
     app.get("/api/getLatestBatchInfo", (req, res) => {
         if (odlt.batches.length == 0) {
             res.json(null);
@@ -19,7 +20,7 @@ export default function(odlt: ODLTRecord, app: express.Application) {
         }
     });
 
-
+    // Get batch data of specified batch id
     app.get("/api/getBatch", (req, res) => {
         const batchId = req.query['batchId'] as string;
         let ret = odlt.getBatch(parseInt(batchId));
