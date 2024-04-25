@@ -3,11 +3,12 @@
  */
 
 import {ODLT} from '@hthuang/bitcoin-lib/dist';
+import { BatchProof, CommittedBatch } from './batchProof';
 import {logger} from '../utils';
 
-export interface Batch {
-    // batch id of omniverse
-    batchId: number;
+export interface BatchData {
+    // batch proof
+    proof: BatchProof;
     // block height of bitcoin
     btcBlockHeight: string;
     // the tx id of bitcoin
@@ -18,35 +19,26 @@ export interface Batch {
     receipt: string;
     // token amount `receipt` received
     value: number;
-}
-
-export interface CommittedBatch {
-    // batch id of omniverse
-    batchId: number,
-    // p2tr output where the batch is committed to
-    receipt: string,
+    // script root used to consume a UTXO
+    scriptRoot: string;
 }
 
 export class ODLTRecord {
-    batches: Array<Batch> = new Array<Batch>();
-    committedBatch: CommittedBatch | null;
+    batches: Array<BatchData> = new Array<BatchData>();
+    committedBatch: CommittedBatch = new CommittedBatch();
 
     /**
-     * @param receipt The committed receipt of first batch
      */
-    constructor(receipt: string) {
-        this.committedBatch = {
-            batchId: 0,
-            receipt: receipt
-        };
+    constructor() {
     }
 
+    /**
+     * Walk through all transactions in `block` to check if there is a commitment transaction
+     * 
+     * @param block A bitcoin block to walk through
+     * 
+     */
     handleBlock(block: any) {
-        if (this.committedBatch == null) {
-            logger.info('No pending omniverse block');
-            return;
-        }
-
         for(let i in block.tx) {
             let tx = block.tx[i];
             console.log('tx', tx, tx.vin, tx.vout);
@@ -54,59 +46,53 @@ export class ODLTRecord {
         }
     }
 
+    /**
+     * If the UTXO including the newest state root is consumed, there should be a new UTXO presenting
+     * the updated state root generated. The updated state root should be calculated from proof data, which
+     * is fetched from S3.
+     * 
+     * @param blockHeight The block height of `tx`
+     * @param tx Raw transaction data in a Bitcoin block
+     */
     handleTransaction(blockHeight: string, tx: any) {
-        let committedBatch = this.committedBatch!;
-        let vout = tx.vout.find((element: any) => element.scriptPubKey.hex == committedBatch.receipt);
-        if (!vout) {
-            return;
-        }
+        // let vout = tx.vout.find((element: any) => element.scriptPubKey.hex == committedBatch.receipt);
+        // if (!vout) {
+        //     return;
+        // }
 
-        if (this.batches.length == 0) {
-            this.pushNewBatch(blockHeight, tx.txid, vout.n, committedBatch.receipt, vout.value);
-        }
-        else {
-            let preBlock = this.batches[this.batches.length - 1];
-            let vin = tx.vin.find((element: any) => element.txid == preBlock.txid && element.vout == preBlock.index);
-            if (!vin) {
-                logger.warn(`receipt: ${committedBatch.receipt} of batch: ${committedBatch.batchId} can not match inputs`);
-            }
-            else {
-                this.pushNewBatch(blockHeight, tx.txid, vout.n, committedBatch.receipt, vout.value);
-            }
-        }
+        // if (this.batches.length == 0) {
+        //     this.pushNewBatch(blockHeight, tx.txid, vout.n, committedBatch.receipt, vout.value);
+        // }
+        // else {
+        //     let preBlock = this.batches[this.batches.length - 1];
+        //     let vin = tx.vin.find((element: any) => element.txid == preBlock.txid && element.vout == preBlock.index);
+        //     if (!vin) {
+        //         logger.warn(`receipt: ${committedBatch.receipt} of batch: ${committedBatch.batchId} can not match inputs`);
+        //     }
+        //     else {
+        //         this.pushNewBatch(blockHeight, tx.txid, vout.n, committedBatch.receipt, vout.value);
+        //     }
+        // }
     }
 
     pushNewBatch(blockHeight: string, txid: string, index: number, receipt: string, value: number) {
-        let committedBatch = this.committedBatch!;
-        this.batches.push({
-            batchId: committedBatch.batchId,
-            btcBlockHeight: blockHeight,
-            txid,
-            index,
-            receipt,
-            value,
-        });
-        this.committedBatch = null;
+        // let committedBatch = this.committedBatch!;
+        // this.batches.push({
+        //     batchId: committedBatch.batchId,
+        //     btcBlockHeight: blockHeight,
+        //     txid,
+        //     index,
+        //     receipt,
+        //     value,
+        // });
+        // this.committedBatch = null;
     }
 
-    getBatch(id: number): Batch | undefined {
+    getBatch(id: number): BatchData | undefined {
         if (id < this.batches.length) {
             return this.batches[id];
         }
 
         return undefined;
-    }
-
-    commitReceipt(batchId: number, receipt: string): boolean {
-        if (this.committedBatch?.batchId == batchId) {
-            this.committedBatch = {
-                batchId,
-                receipt,
-            };
-
-            return true;
-        }
-
-        return false;
     }
 }

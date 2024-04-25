@@ -21,7 +21,7 @@ export default function(odlt: ODLTRecord, app: express.Application) {
 
 
     app.get("/api/getBatch", (req, res) => {
-        const batchId = req.query['height'] as string;
+        const batchId = req.query['batchId'] as string;
         let ret = odlt.getBatch(parseInt(batchId));
         if (ret) {
             res.json(ret);
@@ -31,14 +31,5 @@ export default function(odlt: ODLTRecord, app: express.Application) {
                 error: 'Block not exist'
             })
         }
-    });
-
-    app.get("/api/commitBlockState", (req, res) => {
-        const height = req.query['height'] as string;
-        let receipt = req.query['receipt'] as string;
-        let ret = odlt.commitReceipt(parseInt(height), receipt);
-        res.json({
-            result: ret,
-        });
     });
 }
