@@ -32,6 +32,10 @@ export class ODLTRecord {
     constructor() {
     }
 
+    init() {
+
+    }
+
     /**
      * Walk through all transactions in `block` to check if there is a commitment transaction
      * 
@@ -75,7 +79,17 @@ export class ODLTRecord {
         // }
     }
 
-    pushNewBatch(blockHeight: string, txid: string, index: number, receipt: string, value: number) {
+    /**
+     * Insert new batch data into database
+     * 
+     * @param {bigint} batchId
+     * @param {string} blockHeight 
+     * @param {string} txid 
+     * @param {number} index 
+     * @param {string} receipt 
+     * @param {number} value 
+     */
+    pushNewBatch(batchId: bigint, blockHeight: string, txid: string, index: number, receipt: string, value: number) {
         // let committedBatch = this.committedBatch!;
         // this.batches.push({
         //     batchId: committedBatch.batchId,
