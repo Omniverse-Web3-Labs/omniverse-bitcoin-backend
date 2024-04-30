@@ -28,7 +28,7 @@ export default class S3 implements IS3 {
             logger.error('s3 next batch id error');
             return null;
         }
-        return BigInt(conf.next_batch_id) - BigInt(1);
+        return BigInt(conf.next_batch_id) - 1n;
       } else {
         return null;
       }

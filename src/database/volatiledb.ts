@@ -21,10 +21,10 @@ export default class DB implements IDatabase {
      */
     async getNextBatchId(): Promise<bigint> {
         if (this.latestBatchId != null) {
-            return this.latestBatchId + BigInt(1);
+            return this.latestBatchId + 1n;
         }
         else {
-            return BigInt(0);
+            return 0n;
         }
     }
 

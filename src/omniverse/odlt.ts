@@ -93,7 +93,7 @@ export class ODLTRecord {
      */
     async handleTransaction(blockHeight: string, tx: BitcoinTx) {
         let nextBatchId = await global.db.getNextBatchId();
-        if (nextBatchId == BigInt(0)) {
+        if (nextBatchId == 0n) {
             let vin = tx.vin.find((element: Input) => element.txid == this.config.gas.txid && element.vout == this.config.gas.vout);
             if (!vin) {
                 return;
@@ -122,12 +122,12 @@ export class ODLTRecord {
             let txNumber: number = Number(
                     batchProof.endTxSid -
                     batchProof.startTxSid +
-                    BigInt(1)
+                    1n
                 )
 
             let { batchTxRootHash, UTXOSMTRootHash, AssetSMTRootHash } =
                     ODLTRecord.getMerkleRoots(txNumber, batchProof.instances);
-                    
+
             let commitment = ODLTRecord.calculateCommitment(batchTxRootHash, UTXOSMTRootHash, AssetSMTRootHash, this.config.publicKey);
             if (!commitment) {
                 throw new Error(`Fatal: commitment output calculation failed at block ${blockHeight}, tx id: ${tx.txid}`)
