@@ -1,5 +1,5 @@
-import {BatchData} from '../../src/omniverse/odlt';
-import {IDatabase} from '../../src/database/interfaces';
+import {BatchData} from '../omniverse/odlt';
+import {IDatabase} from './interfaces';
 
 export default class DB implements IDatabase {
     batches: any;
@@ -13,7 +13,12 @@ export default class DB implements IDatabase {
     async init() {
 
     }
-    
+
+    /**
+     * Get the next id of batch which will be pushed to the db
+     * 
+     * @return {bigint} batch id expected to be pushed to db subsequently
+     */
     async getNextBatchId(): Promise<bigint> {
         if (this.latestBatchId != null) {
             return this.latestBatchId + BigInt(1);

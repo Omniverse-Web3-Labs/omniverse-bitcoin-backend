@@ -1,8 +1,12 @@
-class S3 {
+import {IS3} from '../../src/database/interfaces';
+
+export default class S3 implements IS3 {
     proofs: any;
+    latestBatchId: bigint;
 
     constructor() {
         this.proofs = {}
+        this.latestBatchId = BigInt(0);
     }
 
     clear() {
@@ -10,6 +14,14 @@ class S3 {
     }
 
     run() {}
+
+    async queryLatestBatchId(): Promise<bigint | null> {
+        return this.latestBatchId;
+    }
+
+    setLatestBatchId(batchId: bigint) {
+        this.latestBatchId = batchId;
+    }
 
     // set mock data
     setBatchProof(batchId: bigint, proof: object) {
@@ -20,5 +32,3 @@ class S3 {
         return this.proofs[batchId.toString()]
     }
 }
-
-module.exports = new S3()

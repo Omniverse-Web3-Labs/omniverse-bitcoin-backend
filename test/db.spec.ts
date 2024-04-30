@@ -1,4 +1,4 @@
-import DB from '../src/database';
+import {DB} from '../src/database';
 import {BatchData} from '../src/omniverse/odlt';
 import {expect, jest, test} from '@jest/globals';
 
@@ -16,6 +16,8 @@ function getBatchData(): BatchData {
             endBlockHeight: BigInt(0),
             startTxSid: BigInt(0),
             endTxSid: BigInt(0),
+            proof: Uint8Array.from([1, 2, 3, 4]),
+            instances: ['1', '2', '3', '4']
         },
         btcBlockHeight: '0',
         txid: '0x1234567812345678123456781234567812345678123456781234567812345678',

@@ -5,6 +5,8 @@ export interface BatchProof {
     endBlockHeight: bigint,
     startTxSid: bigint,
     endTxSid: bigint,
+    proof: Uint8Array,
+    instances: Array<string>
 }
 
 /**
@@ -12,7 +14,7 @@ export interface BatchProof {
  */
 export class CommittedBatch {
     // batch id of omniverse
-    batchId: number = 0;
+    batchId?: number = undefined;
     // batch proof
     proof?: BatchProof = undefined;
 
