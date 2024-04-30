@@ -1,6 +1,5 @@
 import {inscription, bitcoin} from '../../../omniverse-bitcoin-lib/dist';
-import config from '../../config/config';
-import { db } from '../database';
+import config from '../../src/config';
 
 export default class Monitor {
     constructor() {

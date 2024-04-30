@@ -11,19 +11,14 @@ export default function(odlt: ODLTRecord, app: express.Application) {
     app.use(cors());
 
     // Get latest batch data
-    app.get("/api/getLatestBatchInfo", (req, res) => {
-        if (odlt.batches.length == 0) {
-            res.json(null);
-        }
-        else {
-            res.json(odlt.batches[odlt.batches.length - 1]);
-        }
+    app.get("/api/getLatestBatchInfo", async (req, res) => {
+        res.json(await global.db.getLatestBatchData())
     });
 
     // Get batch data of specified batch id
-    app.get("/api/getBatch", (req, res) => {
+    app.get("/api/getBatch", async (req, res) => {
         const batchId = req.query['batchId'] as string;
-        let ret = odlt.getBatch(parseInt(batchId));
+        let ret = global.db.getBatchData(BigInt(batchId));
         if (ret) {
             res.json(ret);
         }
