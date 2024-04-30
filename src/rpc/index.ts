@@ -18,14 +18,7 @@ export default function(odlt: ODLTRecord, app: express.Application) {
     // Get batch data of specified batch id
     app.get("/api/getBatch", async (req, res) => {
         const batchId = req.query['batchId'] as string;
-        let ret = global.db.getBatchData(BigInt(batchId));
-        if (ret) {
-            res.json(ret);
-        }
-        else {
-            res.json({
-                error: 'Block not exist'
-            })
-        }
+        let ret = await global.db.getBatchData(BigInt(batchId));
+        res.json(ret);
     });
 }

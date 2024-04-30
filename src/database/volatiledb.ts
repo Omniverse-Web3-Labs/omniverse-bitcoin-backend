@@ -50,7 +50,12 @@ export default class DB implements IDatabase {
      */
     async getBatchData(batchId: bigint): Promise<BatchData | null> {
         if (this.latestBatchId != null) {
-            return this.batches[this.latestBatchId!.toString()];
+            if (this.latestBatchId >= batchId) {
+                return this.batches[this.latestBatchId!.toString()];
+            }
+            else {
+                return null;
+            }
         }
         else {
             return null

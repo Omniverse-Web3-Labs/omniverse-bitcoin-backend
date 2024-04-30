@@ -100,9 +100,17 @@ export default class S3 implements IS3 {
      */
     private async getObject(bucket: string, key: string): Promise<any> {
       try {
+        let path = global.config.get('s3.path')
+        if (path && path.length > 0) {
+            if (path.endsWith('/')) {
+                key = path + key
+            } else {
+                key = path + '/' + key
+            }
+        }
         const getObjectCommand = new GetObjectCommand({
-          Bucket: bucket,
-          Key: key,
+            Bucket: bucket,
+            Key: key,
         });
         let response = await this.s3client.send(getObjectCommand);
         let obj = JSON.parse(await response.Body!.transformToString());
