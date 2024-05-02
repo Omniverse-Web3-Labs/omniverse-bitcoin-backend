@@ -6,7 +6,7 @@ import {ODLT} from '@hthuang/bitcoin-lib/dist';
 import { BatchProof, CommittedBatch } from './batchProof';
 import {logger, utils} from '../utils';
 import config, {Config} from '../config';
-import {BitcoinTx, Input, Output} from '../monitor/types';
+import {BitcoinBlock, BitcoinTx, Input, Output} from '../monitor/types';
 import {
     Psbt,
     networks,
@@ -23,7 +23,7 @@ export interface BatchData {
     // batch proof
     proof: BatchProof;
     // block height of bitcoin
-    btcBlockHeight: string;
+    btcBlockHeight: number;
     // the tx id of bitcoin
     txid: string;
     // the output index in tx
@@ -72,13 +72,13 @@ export class ODLTRecord {
     /**
      * Walk through all transactions in `block` to check if there is a commitment transaction
      * 
-     * @param block A bitcoin block to walk through
+     * @param {BitcoinBlock} block A bitcoin block to walk through
      * 
      */
-    handleBlock(block: any) {
+    handleBlock(block: BitcoinBlock) {
         for(let i in block.tx) {
             let tx = block.tx[i];
-            console.log('tx', tx, tx.vin, tx.vout);
+            logger.debug('ODLT: handleBlock - tx', tx, 'tx.vin', tx.vin, 'tx.vout', tx.vout);
             this.handleTransaction(block.height, tx);
         }
     }
@@ -88,12 +88,13 @@ export class ODLTRecord {
      * the updated state root generated. The updated state root should be calculated from proof data, which
      * is fetched from S3.
      * 
-     * @param blockHeight The block height of `tx`
-     * @param tx Raw transaction data in a Bitcoin block
+     * @param {number} blockHeight The block height of `tx`
+     * @param {BitcoinTx} tx Raw transaction data in a Bitcoin block
      */
-    async handleTransaction(blockHeight: string, tx: BitcoinTx) {
+    async handleTransaction(blockHeight: number, tx: BitcoinTx) {
         let nextBatchId = await global.db.getNextBatchId();
         if (nextBatchId == 0n) {
+            logger.debug('ODLT: handleTransaction - initial state, gas is: ', this.config.gas, 'vin is: ', tx.vin)
             let vin = tx.vin.find((element: Input) => element.txid == this.config.gas.txid && element.vout == this.config.gas.vout);
             if (!vin) {
                 return;
@@ -115,8 +116,9 @@ export class ODLTRecord {
 
         // get proof data to calculate commitment output
         let batchProof = await global.s3.queryBatchProof(nextBatchId);
+        logger.debug('ODLT: handleTransaction - batchProof', nextBatchId, batchProof)
         if (!batchProof) {
-            throw new Error(`Fatal: can not get proof data to calculate expected output at block ${blockHeight}, tx id: ${tx.txid}`);
+            throw new Error(`can not get proof data to calculate expected output at block ${blockHeight}, tx id: ${tx.txid}`);
         }
         else {
             let txNumber: number = Number(
@@ -124,6 +126,7 @@ export class ODLTRecord {
                     batchProof.startTxSid +
                     1n
                 )
+                logger.debug('ODLT: handleTransaction - txNumber', txNumber)
 
             let { batchTxRootHash, UTXOSMTRootHash, AssetSMTRootHash } =
                     ODLTRecord.getMerkleRoots(txNumber, batchProof.instances);
@@ -132,10 +135,12 @@ export class ODLTRecord {
             if (!commitment) {
                 throw new Error(`Fatal: commitment output calculation failed at block ${blockHeight}, tx id: ${tx.txid}`)
             }
+            logger.debug('ODLT: handleTransaction - commitment', commitment)
 
             let vout = tx.vout.find((element: Output) => element.scriptPubKey.hex == commitment!.output);
             if (!vout) {
-                throw new Error(`Fatal: expected output is absent at block ${blockHeight}, tx id: ${tx.txid}`)
+                throw new Error(`Fatal: expected output is absent at block ${blockHeight}, tx id: ${tx.txid}, expected output: ${commitment!.output},
+                    batchTxRootHash: ${batchTxRootHash}, UTXOSMTRootHash: ${UTXOSMTRootHash}, AssetSMTRootHash: ${AssetSMTRootHash}, this.config.publicKey: ${this.config.publicKey}`)
             }
 
             if (vout.n != 0) {
@@ -148,28 +153,10 @@ export class ODLTRecord {
                 txid: tx.txid,
                 index: vout.n,
                 receipt: commitment!.output,
-                value: vout.value,
+                value: Math.round(vout.value * 1e8),
                 scriptRoot: commitment!.scriptRoot
             });
         }
-        // let vout = tx.vout.find((element: any) => element.scriptPubKey.hex == committedBatch.receipt);
-        // if (!vout) {
-        //     return;
-        // }
-
-        // if (this.batches.length == 0) {
-        //     this.pushNewBatch(blockHeight, tx.txid, vout.n, committedBatch.receipt, vout.value);
-        // }
-        // else {
-        //     let preBlock = this.batches[this.batches.length - 1];
-        //     let vin = tx.vin.find((element: any) => element.txid == preBlock.txid && element.vout == preBlock.index);
-        //     if (!vin) {
-        //         logger.warn(`receipt: ${committedBatch.receipt} of batch: ${committedBatch.batchId} can not match inputs`);
-        //     }
-        //     else {
-        //         this.pushNewBatch(blockHeight, tx.txid, vout.n, committedBatch.receipt, vout.value);
-        //     }
-        // }
     }
 
     /**

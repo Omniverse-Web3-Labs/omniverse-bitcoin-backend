@@ -1,5 +1,6 @@
 import {BatchData} from '../omniverse/odlt';
 import {IDatabase} from './interfaces';
+import {logger} from '../utils';
 
 export default class DB implements IDatabase {
     batches: any;
@@ -72,6 +73,7 @@ export default class DB implements IDatabase {
     async insertBatchData(batchId: bigint, batchData: BatchData): Promise<boolean> {
         this.batches[batchId.toString()] = batchData;
         this.latestBatchId = batchId;
+        logger.info(`insert batch data of batch id ${batchId} into db successfully, current batch id is ${this.latestBatchId}`);
         return true;
     }
 }

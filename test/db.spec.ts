@@ -19,7 +19,7 @@ function getBatchData(): BatchData {
             proof: Uint8Array.from([1, 2, 3, 4]),
             instances: ['1', '2', '3', '4']
         },
-        btcBlockHeight: '0',
+        btcBlockHeight: 0,
         txid: '0x1234567812345678123456781234567812345678123456781234567812345678',
         index: 0,
         receipt: '0x1234567812345678123456781234567812345678123456781234567812345678',

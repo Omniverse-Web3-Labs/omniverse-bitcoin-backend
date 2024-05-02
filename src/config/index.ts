@@ -1,6 +1,14 @@
 export interface S3Config {
-    client: string;
+    client: {
+        region: string;
+        forcePathStyle: boolean;
+        credentials: {
+            accessKeyId: string;
+            secretAccessKey: string;
+        }
+    };
     bucket: string;
+    path: string;
 }
 
 export interface Config {
@@ -19,14 +27,22 @@ const config: Config = {
     provider: "http://127.0.0.1:18443",
     receipt: "1234",
     network: "regtest",
-    publicKey: "0x1234567812345678123456781234567812345678123456781234567812345678",
+    publicKey: "02ea227677f4118a4a679271b333fc589ef7a1520e02af1c36768013dc3e06397f",
     gas: {
-        txid: "0x12345678",
+        txid: "c440051da7f62a05a593835a65960f41dd56b134fcb24bf3baf39475511fea58",
         vout: 0
     },
     s3: {
-        client: "",
-        bucket: ""
+        client: {
+			region: "us-east-1",
+			forcePathStyle: true,
+			credentials: {
+				accessKeyId: "accessKeyId",
+				secretAccessKey: "secretAccessKey"
+			}
+		},
+		bucket: "bucket",
+		path: "path"
     }
 }
 

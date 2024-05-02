@@ -24,10 +24,15 @@ async function main(){
 main();
 process.on('unhandledRejection', (err) => {
     logger.error('UnhanledRejection', err);
+    if (err instanceof Error) {
+        if (err.message.includes('Fatal')) {
+            process.exit();
+        }
+    }
 });
 
 process.on('uncaughtException', (err) => {
-    console.log('UnhanledException', err);
+    logger.error('UnhanledException', err);
     if (err instanceof Error) {
         if (err.message.includes('Fatal')) {
             process.exit();

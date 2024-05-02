@@ -18,6 +18,6 @@ export interface BitcoinTx {
 }
 
 export interface BitcoinBlock {
-    height: string;
+    height: number;
     tx: Array<BitcoinTx>;
 }

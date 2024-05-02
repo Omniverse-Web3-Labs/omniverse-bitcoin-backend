@@ -58,19 +58,20 @@ export default class S3 implements IS3 {
             if (latestBatchId >= batchId) {
                 let obj = await this.getObject(config['s3']['bucket'], batchId.toString())
                 let batchProof = {
-                    batchId: obj.batch_id,
-                    startBlockHeight: obj.batch_range.start_block_height,
-                    endBlockHeight: obj.batch_range.end_block_height,
-                    startTxSid: obj.batch_range.start_tx_seq_id,
-                    endTxSid: obj.batch_range.end_tx_seq_id,
+                    batchId: BigInt(obj.batch_id),
+                    startBlockHeight: BigInt(obj.batch_range.start_block_height),
+                    endBlockHeight: BigInt(obj.batch_range.end_block_height),
+                    startTxSid: BigInt(obj.batch_range.start_tx_seq_id),
+                    endTxSid: BigInt(obj.batch_range.end_tx_seq_id),
                     proof: obj.proof,
                     instances: obj.instances
                 }
                 
-                let txNumber =
+                let txNumber = Number(
                     batchProof.endTxSid -
                     batchProof.startTxSid +
-                    1
+                    1n
+                )
                 if (txNumber < 1) {
                     throw new Error(
                         `Idle: batch id ${batchId}, tx number should be larger than 0, but got ${txNumber}`
@@ -100,7 +101,7 @@ export default class S3 implements IS3 {
      */
     private async getObject(bucket: string, key: string): Promise<any> {
       try {
-        let path = global.config.get('s3.path')
+        let path = config.s3.path
         if (path && path.length > 0) {
             if (path.endsWith('/')) {
                 key = path + key

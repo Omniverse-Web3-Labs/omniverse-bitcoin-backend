@@ -46,8 +46,16 @@ function getDefaultConfig(): Config {
             vout: 0
         },
         s3: {
-            client: "",
-            bucket: ""
+            client: {
+                region: "us-east-1",
+                forcePathStyle: true,
+                credentials: {
+                    accessKeyId: "id",
+                    secretAccessKey: "key"
+                }
+            },
+            bucket: "bucket",
+            path: "path"
         }
     }
 }
@@ -89,7 +97,7 @@ function getBatchData(batchId: bigint = 0n): BatchData {
                 '1', '2', '3', '4', '1', '2', '3', '4'
             ]
         },
-        btcBlockHeight: '0',
+        btcBlockHeight: 0,
         txid: '123456781234567812345678123456781234567812345678123456781234567' + batchId.toString(),
         index: 0,
         receipt: commitment.output,
@@ -174,20 +182,20 @@ describe('Ominiverse backend', function () {
 
             it('should fail with no proof data found to calculate commitment output', async function () {
                 let tx = getTransaction(batchId);
-                await expectAsyncThrow(async () => {await odlt.handleTransaction('0', tx)}, 'can not get proof data to calculate expected output')
+                await expectAsyncThrow(async () => {await odlt.handleTransaction(0, tx)}, 'can not get proof data to calculate expected output')
             })
 
             // it('should fail with calculating commitment output failed', async function () {
             //     s3.setBatchProof(BigInt(0), getBatchData().proof)
             //     let tx = getTransaction();
             //     tx.vout[0].scriptPubKey.hex = '0x1234';
-            //     expectAsyncThrow(async () => {await odlt.handleTransaction('0', tx)}, 'commitment output calculation failed')
+            //     expectAsyncThrow(async () => {await odlt.handleTransaction(0, tx)}, 'commitment output calculation failed')
             // })
 
             it('should fail with commitment output is not in the transaction output', async function () {
                 s3.setBatchProof(BigInt(0), getBatchData().proof)
                 let tx = getTransaction(batchId);
-                await expectAsyncThrow(async () => {await odlt.handleTransaction('0', tx)}, 'expected output is absent')
+                await expectAsyncThrow(async () => {await odlt.handleTransaction(0, tx)}, 'expected output is absent')
             })
 
             it('should fail with the index of commitment output is not 0', async function () {
@@ -195,14 +203,14 @@ describe('Ominiverse backend', function () {
                 let tx = getTransaction(batchId);
                 tx.vout[0].n = 1;
                 tx.vout[0].scriptPubKey.hex = '51203e4b04ae8bada68cde9bed8c6bab369a05080c125f4bdc8341ae261abd493717';
-                await expectAsyncThrow(async () => {await odlt.handleTransaction('0', tx)}, 'the index of commitment output is not 0 at block')
+                await expectAsyncThrow(async () => {await odlt.handleTransaction(0, tx)}, 'the index of commitment output is not 0 at block')
             })
     
             it('should pass and save the batch data into db with all conditions satisfied', async function () {
                 s3.setBatchProof(BigInt(0), getBatchData().proof)
                 let tx = getTransaction(batchId);
                 tx.vout[0].scriptPubKey.hex = '51203e4b04ae8bada68cde9bed8c6bab369a05080c125f4bdc8341ae261abd493717';
-                await odlt.handleTransaction('0', tx);
+                await odlt.handleTransaction(0, tx);
                 await expect(db.getLatestBatchData()).resolves.not.toBeNull();
             })
         }
@@ -211,7 +219,7 @@ describe('Ominiverse backend', function () {
             it('should have no effect with no expected gas UTXO is included', async function () {
                 let tx = getTransaction();
                 tx.vin[0].txid = '1234567812345678123456781234567812345678123456781234567812345678';
-                await expect(odlt.handleTransaction('0', tx)).resolves.toBeUndefined();
+                await expect(odlt.handleTransaction(0, tx)).resolves.toBeUndefined();
             })
 
             describe('with expected gas UTXO included', function () {
@@ -224,7 +232,7 @@ describe('Ominiverse backend', function () {
                         txid: '1234567812345678123456781234567812345678123456781234567812345678',
                         vout: 0
                     });
-                    await expectAsyncThrow(async () => {await odlt.handleTransaction('0', tx)}, 'Fatal: input number of initial transaction is not 1')
+                    await expectAsyncThrow(async () => {await odlt.handleTransaction(0, tx)}, 'Fatal: input number of initial transaction is not 1')
                 })
 
                 describe('state transition process', stateTransition.bind(stateTransition, 0n));
@@ -236,7 +244,7 @@ describe('Ominiverse backend', function () {
                 db.insertBatchData(BigInt(0), getBatchData());
                 let tx = getTransaction(1n);
                 tx.vin[0].vout = 2;
-                await expect(odlt.handleTransaction('1', tx)).resolves.toBeUndefined();
+                await expect(odlt.handleTransaction(1, tx)).resolves.toBeUndefined();
                 let latestBatchData = await db.getLatestBatchData();
                 expect(latestBatchData!.proof.batchId).toBe(BigInt(0));
             })
@@ -249,7 +257,7 @@ describe('Ominiverse backend', function () {
                 it('should fail with the index of previous commitment input is not 0', async function () {
                     let tx = getTransaction();
                     tx.vin[0].vout = 1;
-                    expectAsyncThrow(async () => {await odlt.handleTransaction('0', tx)}, 'the index of commitment output is not 0')
+                    expectAsyncThrow(async () => {await odlt.handleTransaction(0, tx)}, 'the index of commitment output is not 0')
                 })
 
                 describe('state transition process', stateTransition.bind(stateTransition, 1n));
