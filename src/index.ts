@@ -11,7 +11,7 @@ async function main(){
    
     const odlt = new ODLTRecord();
     const monitor = new Monitor();
-    monitor.start((block: any) => {odlt.handleBlock(block);});
+    monitor.start(async (block: any) => {await odlt.handleBlock(block);});
     const app: express.Application = express();
 
     registerRouters(odlt, app)
