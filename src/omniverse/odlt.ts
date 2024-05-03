@@ -75,11 +75,11 @@ export class ODLTRecord {
      * @param {BitcoinBlock} block A bitcoin block to walk through
      * 
      */
-    handleBlock(block: BitcoinBlock) {
+    async handleBlock(block: BitcoinBlock) {
         for(let i in block.tx) {
             let tx = block.tx[i];
-            logger.debug('ODLT: handleBlock - tx', tx, 'tx.vin', tx.vin, 'tx.vout', tx.vout);
-            this.handleTransaction(block.height, tx);
+            logger.debug('ODLT: handleBlock - height', block.height);
+            await this.handleTransaction(block.height, tx);
         }
     }
 
@@ -94,12 +94,12 @@ export class ODLTRecord {
     async handleTransaction(blockHeight: number, tx: BitcoinTx) {
         let nextBatchId = await global.db.getNextBatchId();
         if (nextBatchId == 0n) {
-            logger.debug('ODLT: handleTransaction - initial state, gas is: ', this.config.gas, 'vin is: ', tx.vin)
             let vin = tx.vin.find((element: Input) => element.txid == this.config.gas.txid && element.vout == this.config.gas.vout);
             if (!vin) {
                 return;
             }
 
+            logger.debug('ODLT: handleTransaction - initial state, gas is: ', this.config.gas, 'vin is: ', tx.vin)
             // the initial transaction
             if (tx.vin.length > 1) {
                 throw new Error(`Fatal: input number of initial transaction is not 1 at block ${blockHeight}, tx id: ${tx.txid}`);
