@@ -40,6 +40,8 @@ function getDefaultConfig(): Config {
         provider: "http://127.0.0.1:18443",
         receipt: "1234",
         network: 'regtest',
+        rpcuser: 'rpcuser',
+        rpcpassword: 'rpcpassword',
         publicKey: '12345678123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678',
         gas: {
             txid: "1234567812345678123456781234567812345678123456781234567812345670",

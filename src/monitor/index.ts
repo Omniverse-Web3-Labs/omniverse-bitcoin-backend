@@ -8,8 +8,8 @@ export default class Monitor {
 
     start(cb: (block: BitcoinBlock) => void) {
         bitcoin.setProvider(config.provider);
-        bitcoin.setUser('a');
-        bitcoin.setPassword('b');
+        bitcoin.setUser(config.rpcuser);
+        bitcoin.setPassword(config.rpcpassword);
         try {
             return bitcoin.subscribe({from: 0,}, (block: any) => {
                 cb(block as BitcoinBlock);
