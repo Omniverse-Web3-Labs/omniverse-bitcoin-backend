@@ -46,3 +46,21 @@ export function toByteArray(hexString: string) {
   }
   return result;
 }
+
+export function toXOnly(pubKey: Buffer): Buffer {
+  return pubKey.length === 32 ? pubKey : pubKey.slice(1, 33)
+}
+
+/**
+ *
+ * @param {string[]} u64Array There should be at least four items in the array, but only the first four items will be used
+ * @return {bigint}
+ */
+export function toU256FromU64Array(u64Array: Array<string>): bigint {
+  let sum =
+      (BigInt(u64Array[0]) << 192n) +
+      (BigInt(u64Array[1]) << 128n) +
+      (BigInt(u64Array[2]) << 64n) +
+      BigInt(u64Array[3])
+  return sum
+}
