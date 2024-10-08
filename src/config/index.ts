@@ -13,7 +13,6 @@ export interface S3Config {
 
 export interface Config {
     provider: string;
-    receipt: string;
     network: string;
     rpcuser: string;
     rpcpassword: string;
@@ -27,7 +26,6 @@ export interface Config {
 
 const config: Config = {
     provider: "http://127.0.0.1:18443",
-    receipt: "1234",
     network: "regtest",
     rpcuser: "rpcuser",
     rpcpassword: "rpcpassword",
