@@ -1,4 +1,4 @@
-import {inscription, bitcoin} from '../../../omniverse-bitcoin-lib/dist';
+import {inscription, bitcoin} from '@omniverselab/bitcoin-lib';
 import config from '../config';
 import {BitcoinBlock} from '../monitor/types';
 
