@@ -2,7 +2,6 @@
  * Implementation of omniverse dlt, used to record all omniverse curBlockUtxoRootHash
  */
 
-import {ODLT} from '@hthuang/bitcoin-lib/dist';
 import { BatchProof, CommittedBatch } from './batchProof';
 import {logger, utils} from '../utils';
 import config, {Config} from '../config';
