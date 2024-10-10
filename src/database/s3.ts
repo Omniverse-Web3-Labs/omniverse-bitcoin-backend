@@ -45,8 +45,11 @@ export default class S3 implements IS3 {
      *  endBlockHeight: bigint,
      *  startTxSid: bigint,
      *  endTxSid: bigint,
-     *  proof: number(u8)[],
-     *  instances: string[],
+     *  aggProof: {
+     *      vkeyHash: string,
+     *      publicValues: string,
+     *      proof: string
+     *  }
      * }
      */
     async queryBatchProof(batchId: bigint): Promise<BatchProof | null> {
@@ -63,8 +66,7 @@ export default class S3 implements IS3 {
                     endBlockHeight: BigInt(obj.batch_range.end_block_height),
                     startTxSid: BigInt(obj.batch_range.start_tx_seq_id),
                     endTxSid: BigInt(obj.batch_range.end_tx_seq_id),
-                    proof: obj.proof,
-                    instances: obj.instances
+                    aggProof: obj.agg_proof,
                 }
                 
                 let txNumber = Number(
@@ -75,12 +77,6 @@ export default class S3 implements IS3 {
                 if (txNumber < 1) {
                     throw new Error(
                         `Idle: batch id ${batchId}, tx number should be larger than 0, but got ${txNumber}`
-                    )
-                }
-
-                if (txNumber * 4 + 20 != batchProof.instances.length) {
-                    throw new Error(
-                        `Idle: batch id ${batchId}, tx number ${txNumber} and instances number ${batchProof.instances.length} do not match`
                     )
                 }
 

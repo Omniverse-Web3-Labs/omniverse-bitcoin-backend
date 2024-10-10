@@ -128,7 +128,7 @@ export class ODLTRecord {
                 logger.debug('ODLT: handleTransaction - txNumber', txNumber)
 
             let { batchTxRootHash, UTXOSMTRootHash, AssetSMTRootHash } =
-                    ODLTRecord.getMerkleRoots(txNumber, batchProof.instances);
+                    ODLTRecord.getMerkleRoots(txNumber, batchProof.aggProof);
 
             let commitment = ODLTRecord.calculateCommitment(batchTxRootHash, UTXOSMTRootHash, AssetSMTRootHash, this.config.publicKey);
             if (!commitment) {
@@ -162,7 +162,7 @@ export class ODLTRecord {
      * Get merkle roots from instances in batch proof
      *
      * @param {number} txNumber transaction number included in the batch proof
-     * @param {string[]} instances instances in batch proof
+     * @param {any} aggProof data of batch proof
      * @return {Object}
      * {
      *  batchTxRootHash,
@@ -170,22 +170,19 @@ export class ODLTRecord {
      *  AssetSMTRootHash,
      * }
      */
-    static getMerkleRoots(txNumber: number, instances: Array<string>): {batchTxRootHash: string, UTXOSMTRootHash: string, AssetSMTRootHash: string} {
+    static getMerkleRoots(txNumber: number, aggProof: any): {batchTxRootHash: string, UTXOSMTRootHash: string, AssetSMTRootHash: string} {
+        const publicValues = aggProof.publicValues.substring(10);
         // batch tx merkle root
-        let batchTxRootHash = utils.toU256FromU64Array(instances.slice(0))
+        let batchTxRootHash = publicValues.substring(256);
         // UTXO smt root
-        let UTXOSMTRootHash = utils.toU256FromU64Array(
-            instances.slice((txNumber + 3) * 4)
-        )
+        let UTXOSMTRootHash = publicValues.substring(192, 256);
         // asset smt root
-        let AssetSMTRootHash = utils.toU256FromU64Array(
-            instances.slice((txNumber + 4) * 4)
-        )
+        let AssetSMTRootHash = publicValues.substring(128, 192);
 
         return {
-          batchTxRootHash: batchTxRootHash.toString(16),
-          UTXOSMTRootHash: UTXOSMTRootHash.toString(16),
-          AssetSMTRootHash: AssetSMTRootHash.toString(16),
+          batchTxRootHash: batchTxRootHash,
+          UTXOSMTRootHash: UTXOSMTRootHash,
+          AssetSMTRootHash: AssetSMTRootHash,
         }
     }
 

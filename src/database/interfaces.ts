@@ -49,8 +49,11 @@ export interface IS3 {
      *  endBlockHeight: bigint,
      *  startTxSid: bigint,
      *  endTxSid: bigint,
-     *  proof: number(u8)[],
-     *  instances: string[],
+     *  aggProof: {
+     *      vkeyHash: string,
+     *      publicValues: string,
+     *      proof: string
+     *  }
      * }
      */
     queryBatchProof(batchId: bigint): Promise<BatchProof | null>;
