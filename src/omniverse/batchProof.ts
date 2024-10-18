@@ -5,8 +5,11 @@ export interface BatchProof {
     endBlockHeight: bigint,
     startTxSid: bigint,
     endTxSid: bigint,
-    proof: Uint8Array,
-    instances: Array<string>
+    aggProof: {
+        vkeyHash: string,
+        publicValues: string,
+        proof: string
+    }
 }
 
 /**

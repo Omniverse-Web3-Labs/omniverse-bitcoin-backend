@@ -38,7 +38,6 @@ function newODLTRecord(): ODLTRecord {
 function getDefaultConfig(): Config {
     return {
         provider: "http://127.0.0.1:18443",
-        receipt: "1234",
         network: 'regtest',
         rpcuser: 'rpcuser',
         rpcpassword: 'rpcpassword',
@@ -64,7 +63,7 @@ function getDefaultConfig(): Config {
 
 function getCommitment(batchId: bigint): {output: string, scriptRoot: string} {
     let proof = getBatchProof(batchId);
-    let { batchTxRootHash, UTXOSMTRootHash, AssetSMTRootHash } = ODLTRecord.getMerkleRoots(Number(proof.endTxSid - proof.startTxSid + 1n), proof.instances);
+    let { batchTxRootHash, UTXOSMTRootHash, AssetSMTRootHash } = ODLTRecord.getMerkleRoots(Number(proof.endTxSid - proof.startTxSid + 1n), proof.aggProof);
     let commitment = ODLTRecord.calculateCommitment(batchTxRootHash, UTXOSMTRootHash, AssetSMTRootHash, getDefaultConfig().publicKey);
     return commitment!;
 }
@@ -76,11 +75,11 @@ function getBatchProof(batchId: bigint = 0n): BatchProof {
         endBlockHeight: batchId,
         startTxSid: batchId,
         endTxSid: batchId,
-        proof: Uint8Array.from([1, 2, 3, 4]),
-        instances: [
-            '1', '2', '3', '4', '1', '2', '3', '4', '1', '2', '3', '4', '1', '2', '3', '4', '1', '2', '3', '4', 
-            '1', '2', '3', '4', '1', '2', '3', '4'
-        ]
+        aggProof: {
+            vkeyHash: "0x008e795750b8af6f2cbb72f4dad7c864fc4cbadc68cae36021e24bf499c76012",
+            publicValues: "0x000000a000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000005",
+            proof: ""
+        }
     }
 }
 
@@ -93,11 +92,11 @@ function getBatchData(batchId: bigint = 0n): BatchData {
             endBlockHeight: batchId,
             startTxSid: batchId,
             endTxSid: batchId,
-            proof: Uint8Array.from([1, 2, 3, 4]),
-            instances: [
-                '1', '2', '3', '4', '1', '2', '3', '4', '1', '2', '3', '4', '1', '2', '3', '4', '1', '2', '3', '4', 
-                '1', '2', '3', '4', '1', '2', '3', '4'
-            ]
+            aggProof: {
+                vkeyHash: "0x008e795750b8af6f2cbb72f4dad7c864fc4cbadc68cae36021e24bf499c76012",
+                publicValues: "0x000000a000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000005",
+                proof: ""
+            }
         },
         btcBlockHeight: 0,
         txid: '123456781234567812345678123456781234567812345678123456781234567' + batchId.toString(),
@@ -204,14 +203,14 @@ describe('Ominiverse backend', function () {
                 s3.setBatchProof(BigInt(0), getBatchData().proof)
                 let tx = getTransaction(batchId);
                 tx.vout[0].n = 1;
-                tx.vout[0].scriptPubKey.hex = '51203e4b04ae8bada68cde9bed8c6bab369a05080c125f4bdc8341ae261abd493717';
+                tx.vout[0].scriptPubKey.hex = '5120c651662f682c8cb67b128007288c7e1add240ff31bbb7fe1ddd92644877e59d8';
                 await expectAsyncThrow(async () => {await odlt.handleTransaction(0, tx)}, 'the index of commitment output is not 0 at block')
             })
     
             it('should pass and save the batch data into db with all conditions satisfied', async function () {
                 s3.setBatchProof(BigInt(0), getBatchData().proof)
                 let tx = getTransaction(batchId);
-                tx.vout[0].scriptPubKey.hex = '51203e4b04ae8bada68cde9bed8c6bab369a05080c125f4bdc8341ae261abd493717';
+                tx.vout[0].scriptPubKey.hex = '5120c651662f682c8cb67b128007288c7e1add240ff31bbb7fe1ddd92644877e59d8';
                 await odlt.handleTransaction(0, tx);
                 await expect(db.getLatestBatchData()).resolves.not.toBeNull();
             })
