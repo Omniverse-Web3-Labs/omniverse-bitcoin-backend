@@ -2,16 +2,20 @@ import {
     S3Client,
     GetObjectCommand,
   } from '@aws-sdk/client-s3';
-import config from '../config';
+import fs from 'fs';
 import {logger} from '../utils';
 import {BatchProof} from '../omniverse/batchProof';
 import {IS3} from './interfaces';
+import { S3Config } from '../config';
 
 export default class S3 implements IS3 {
+    config: S3Config;
     s3client: S3Client;
 
     constructor() {
-        this.s3client = new S3Client(config.s3.client);
+        const config = JSON.parse(fs.readFileSync("./config/default.json").toString());
+        this.config = config as S3Config;
+        this.s3client = new S3Client(this.config.client);
     }
 
     run() {}
@@ -22,7 +26,7 @@ export default class S3 implements IS3 {
      * @returns {bigint | null} 
      */
     async queryLatestBatchId(): Promise<bigint | null> {
-      let conf = await this.getObject(config.s3.bucket, 'config');
+      let conf = await this.getObject(this.config.bucket, 'config');
       if (conf) {
         if (conf.next_batch_id < 1) {
             logger.error('s3 next batch id error');
@@ -59,7 +63,7 @@ export default class S3 implements IS3 {
         }
         else {
             if (latestBatchId >= batchId) {
-                let obj = await this.getObject(config['s3']['bucket'], batchId.toString())
+                let obj = await this.getObject(this.config.bucket, batchId.toString())
                 let batchProof = {
                     batchId: BigInt(obj.batch_id),
                     startBlockHeight: BigInt(obj.batch_range.start_block_height),
@@ -97,7 +101,7 @@ export default class S3 implements IS3 {
      */
     private async getObject(bucket: string, key: string): Promise<any> {
       try {
-        let path = config.s3.path
+        let path = this.config.path
         if (path && path.length > 0) {
             if (path.endsWith('/')) {
                 key = path + key
