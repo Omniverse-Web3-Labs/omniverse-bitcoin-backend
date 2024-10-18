@@ -6,15 +6,14 @@ import fs from 'fs';
 import {logger} from '../utils';
 import {BatchProof} from '../omniverse/batchProof';
 import {IS3} from './interfaces';
-import { S3Config } from '../config';
+import { S3ConfigData } from '../config';
 
 export default class S3 implements IS3 {
-    config: S3Config;
+    config: S3ConfigData;
     s3client: S3Client;
 
     constructor() {
-        const config = JSON.parse(fs.readFileSync("./config/default.json").toString());
-        this.config = config as S3Config;
+        this.config = global.config.getS3Config();
         this.s3client = new S3Client(this.config.client);
     }
 

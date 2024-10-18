@@ -4,8 +4,6 @@
 
 import { BatchProof, CommittedBatch } from './batchProof';
 import {logger, utils} from '../utils';
-import {Config} from '../config';
-import fs from 'fs';
 import {BitcoinBlock, BitcoinTx, Input, Output} from '../monitor/types';
 import {
     Psbt,
@@ -17,6 +15,7 @@ import {
 } from 'bitcoinjs-lib'
 import * as tinysecp from 'tiny-secp256k1'
 import { Taptree } from 'bitcoinjs-lib/src/types';
+import { ConfigData } from '../config';
 initEccLib(tinysecp)
 
 export interface BatchData {
@@ -37,14 +36,13 @@ export interface BatchData {
 }
 
 export class ODLTRecord {
-    config: Config;
+    config: ConfigData;
     network: networks.Network;
 
     /**
      */
     constructor() {
-        const config = JSON.parse(fs.readFileSync("./config/default.json").toString());
-        this.config = config as Config;
+        this.config = global.config.getConfig();
         this.network = networks.bitcoin;
     }
 

@@ -1,4 +1,6 @@
-export interface S3Config {
+import fs from 'fs';
+
+export interface S3ConfigData {
     client: {
         region: string;
         forcePathStyle: boolean;
@@ -11,7 +13,7 @@ export interface S3Config {
     path: string;
 }
 
-export interface Config {
+export interface ConfigData {
     provider: string;
     network: string;
     rpcuser: string;
@@ -21,5 +23,26 @@ export interface Config {
         txid: string;
         vout: number;
     };
-    s3: S3Config;
+    s3: S3ConfigData;
+}
+
+export interface IConfig {
+    getConfig(): ConfigData;
+    getS3Config(): S3ConfigData;
+}
+
+export class Config implements IConfig {
+    config: ConfigData;
+
+    constructor() {
+        const config = JSON.parse(fs.readFileSync("./config/default.json").toString());
+        this.config = config as ConfigData;
+    }
+    getConfig(): ConfigData {
+        return this.config;
+    }
+
+    getS3Config(): S3ConfigData {
+        return this.config.s3;
+    }
 }
