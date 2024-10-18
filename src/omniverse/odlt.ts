@@ -4,7 +4,8 @@
 
 import { BatchProof, CommittedBatch } from './batchProof';
 import {logger, utils} from '../utils';
-import config, {Config} from '../config';
+import {Config} from '../config';
+import fs from 'fs';
 import {BitcoinBlock, BitcoinTx, Input, Output} from '../monitor/types';
 import {
     Psbt,
@@ -42,7 +43,8 @@ export class ODLTRecord {
     /**
      */
     constructor() {
-        this.config = config;
+        const config = JSON.parse(fs.readFileSync("./config/default.json").toString());
+        this.config = config as Config;
         this.network = networks.bitcoin;
     }
 
