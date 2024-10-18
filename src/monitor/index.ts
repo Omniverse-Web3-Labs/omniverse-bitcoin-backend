@@ -1,5 +1,4 @@
 import {inscription, bitcoin} from '@omniverselab/bitcoin-lib';
-import config from '../config';
 import {BitcoinBlock} from '../monitor/types';
 
 export default class Monitor {
@@ -7,9 +6,9 @@ export default class Monitor {
     }
 
     start(cb: (block: BitcoinBlock) => Promise<void>) {
-        bitcoin.setProvider(config.provider);
-        bitcoin.setUser(config.rpcuser);
-        bitcoin.setPassword(config.rpcpassword);
+        bitcoin.setProvider(global.config.getConfig().provider);
+        bitcoin.setUser(global.config.getConfig().rpcuser);
+        bitcoin.setPassword(global.config.getConfig().rpcpassword);
         try {
             return bitcoin.subscribe({from: 0,}, async (block: any) => {
                 await cb(block as BitcoinBlock);

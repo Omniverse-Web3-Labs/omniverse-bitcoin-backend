@@ -1,13 +1,14 @@
 import { BatchData, ODLTRecord } from "../src/omniverse/odlt";
 import {BatchProof} from '../src/omniverse/batchProof';
 import {expect, jest, test} from '@jest/globals';
-import {Config} from '../src/config';
+import {Config, ConfigData} from '../src/config';
 import { BitcoinTx, Input, Output } from "../src/monitor/types";
 import DB from './mock/db.mock';
 import S3 from './mock/s3.mock';
 
 let db: DB;
 let s3: S3;
+let config: Config;
 
 async function expectAsyncThrow(fn: () => Promise<void>, message: string) {
     try {
@@ -28,14 +29,17 @@ async function expectAsyncThrow(fn: () => Promise<void>, message: string) {
 function newODLTRecord(): ODLTRecord {
     db = new DB();
     s3 = new S3();
+    config = new Config();
+
     global.db = db;
     global.s3 = s3;
+    global.config = config;
     let odlt = new ODLTRecord();
     odlt.init();
     return odlt;
 }
 
-function getDefaultConfig(): Config {
+function getDefaultConfig(): ConfigData {
     return {
         provider: "http://127.0.0.1:18443",
         network: 'regtest',
@@ -110,7 +114,7 @@ function getBatchData(batchId: bigint = 0n): BatchData {
 describe('Ominiverse backend', function () {
     describe('init', function () {
         it('should pass', function () {
-            new ODLTRecord();
+            newODLTRecord();
         })
     })
 
