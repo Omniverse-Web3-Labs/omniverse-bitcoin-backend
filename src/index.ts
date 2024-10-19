@@ -7,9 +7,9 @@ import {DB, S3} from "./database";
 import { Config } from "./config";
 
 async function main(){
+    global.config = new Config();
     global.db = new DB();
     global.s3 = new S3();
-    global.config = new Config();
    
     const odlt = new ODLTRecord();
     const monitor = new Monitor();
